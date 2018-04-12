@@ -107,7 +107,6 @@ class PathView(MethodView):
     def get(self, p=''):
         hide_dotfile = request.args.get('hide-dotfile', request.cookies.get('hide-dotfile', 'no'))
         client_id = request.headers.get('X-Client-Id')
-        print('client_id =>', client_id)
 
         path = get_path(client_id, p)
         if os.path.isdir(path):
@@ -146,7 +145,6 @@ class PathView(MethodView):
 
     def post(self, p=''):
         client_id = request.headers.get('X-Client-Id')
-        print('client_id =>', client_id)
         path = get_path(client_id, p)
         info = {}
         if os.path.isdir(path):
