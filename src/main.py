@@ -10,7 +10,7 @@ import json
 import mimetypes
 
 app = Flask(__name__, static_url_path='/assets', static_folder='assets')
-root = os.path.expanduser('~')
+root = os.environ.get('ARTIFACTS_PATH')
 
 ignored = ['.bzr', '$RECYCLE.BIN', '.DAV', '.DS_Store', '.git', '.hg', '.htaccess', '.htpasswd', '.Spotlight-V100', '.svn', '__MACOSX', 'ehthumbs.db', 'robots.txt', 'Thumbs.db', 'thumbs.tps']
 datatypes = {'audio': 'm4a,mp3,oga,ogg,webma,wav', 'archive': '7z,zip,rar,gz,tar', 'image': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'pdf': 'pdf', 'quicktime': '3g2,3gp,3gp2,3gpp,mov,qt', 'source': 'atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist', 'text': 'txt', 'video': 'mp4,m4v,ogv,webm', 'website': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
@@ -96,11 +96,20 @@ def get_range(request):
     else:
         return 0, None
 
+def get_path(client_id, file_path):
+    proxy = os.environ.get('PROXY_PATH')
+    if (proxy): file_path = file_path.replace(proxy, '', 1)
+    if (file_path and file_path[0] == '/'): file_path = file_path[1:]
+    path = os.path.join(root, client_id, file_path)
+    return path
+
 class PathView(MethodView):
     def get(self, p=''):
         hide_dotfile = request.args.get('hide-dotfile', request.cookies.get('hide-dotfile', 'no'))
+        client_id = request.headers.get('X-Client-Id')
+        print('client_id =>', client_id)
 
-        path = os.path.join(root, p)
+        path = get_path(client_id, p)
         if os.path.isdir(path):
             contents = []
             total = {'size': 0, 'dir': 0, 'file': 0}
@@ -136,7 +145,9 @@ class PathView(MethodView):
         return res
 
     def post(self, p=''):
-        path = os.path.join(root, p)
+        client_id = request.headers.get('X-Client-Id')
+        print('client_id =>', client_id)
+        path = get_path(client_id, p)
         info = {}
         if os.path.isdir(path):
             files = request.files.getlist('files[]')
@@ -161,4 +172,5 @@ path_view = PathView.as_view('path_view')
 app.add_url_rule('/', view_func=path_view)
 app.add_url_rule('/<path:p>', view_func=path_view)
 
-app.run('0.0.0.0', 8000, threaded=True, debug=False)
+port = int(os.environ.get('PORT', 5000))
+app.run('0.0.0.0', port, threaded=True, debug=False)
