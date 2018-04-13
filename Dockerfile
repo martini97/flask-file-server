@@ -10,6 +10,9 @@ RUN pip install             \
     Jinja2==2.10            \
     MarkupSafe==1.0         \
     Werkzeug==0.14.1
+
+RUN apt update && apt install -y vim
+
 ENV PYTHONPATH=/app ARTIFACTS_PATH=/app/data
 EXPOSE 5000
 CMD ["python", "src/main.py"]

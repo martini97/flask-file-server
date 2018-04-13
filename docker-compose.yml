@@ -2,7 +2,7 @@ local: &local
     build: .
     container_name: fileserver
     ports:
-        - 5000
+        - 5000:5000
     volumes:
         - .:/app
         - ./vendor:/usr/api/vendor
@@ -10,6 +10,3 @@ local: &local
         PYTHONPATH: /app
         PYTHONUSERBASE: /usr/api/vendor
         ARTIFACTS_PATH: /app/data
-        PROXY_PATH: data
-        VIRTUAL_HOST: analytics-service.local.bravi.com.br
-        VIRTUAL_PORT: 5000

@@ -61,6 +61,7 @@ $(document).ready(function(){
         }
     });
     $('#close-uploader').click(function() {
-        $('#filer_input').prop("jFiler").reset()
+        $('#filer_input').prop("jFiler").reset();
+        window.location.reload();
     });
 });

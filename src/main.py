@@ -1,16 +1,21 @@
-from flask import Flask, make_response, request, session, render_template, send_file, Response
-from flask.views import MethodView
-from werkzeug import secure_filename
-from datetime import datetime
 import humanize
+import json
+import mimetypes
 import os
 import re
 import stat
-import json
-import mimetypes
+
+from datetime import datetime
+from flask import Flask, make_response, request, session, render_template, send_file, Response
+from flask.views import MethodView
+from werkzeug import secure_filename
+from urllib.parse import urlparse
+
+from config import config
+from proxy import ReverseProxied
 
 app = Flask(__name__, static_url_path='/assets', static_folder='assets')
-root = os.environ.get('ARTIFACTS_PATH')
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 ignored = ['.bzr', '$RECYCLE.BIN', '.DAV', '.DS_Store', '.git', '.hg', '.htaccess', '.htpasswd', '.Spotlight-V100', '.svn', '__MACOSX', 'ehthumbs.db', 'robots.txt', 'Thumbs.db', 'thumbs.tps']
 datatypes = {'audio': 'm4a,mp3,oga,ogg,webma,wav', 'archive': '7z,zip,rar,gz,tar', 'image': 'gif,ico,jpe,jpeg,jpg,png,svg,webp', 'pdf': 'pdf', 'quicktime': '3g2,3gp,3gp2,3gpp,mov,qt', 'source': 'atom,bat,bash,c,cmd,coffee,css,hml,js,json,java,less,markdown,md,php,pl,py,rb,rss,sass,scpt,swift,scss,sh,xml,yml,plist', 'text': 'txt', 'video': 'mp4,m4v,ogv,webm', 'website': 'htm,html,mhtm,mhtml,xhtm,xhtml'}
@@ -97,10 +102,9 @@ def get_range(request):
         return 0, None
 
 def get_path(client_id, file_path):
-    proxy = os.environ.get('PROXY_PATH')
-    if (proxy): file_path = file_path.replace(proxy, '', 1)
+    if (config.proxy): file_path = file_path.replace(config.proxy, '', 1)
     if (file_path and file_path[0] == '/'): file_path = file_path[1:]
-    path = os.path.join(root, client_id, file_path)
+    path = os.path.join(config.root, client_id, file_path)
     return path
 
 class PathView(MethodView):
@@ -121,6 +125,7 @@ class PathView(MethodView):
                 stat_res = os.stat(filepath)
                 info = {}
                 info['name'] = filename
+                info['href'] = os.path.join(urlparse(request.url).path, filename)
                 info['mtime'] = stat_res.st_mtime
                 ft = get_type(stat_res.st_mode)
                 info['type'] = ft
@@ -170,5 +175,4 @@ path_view = PathView.as_view('path_view')
 app.add_url_rule('/', view_func=path_view)
 app.add_url_rule('/<path:p>', view_func=path_view)
 
-port = int(os.environ.get('PORT', 5000))
-app.run('0.0.0.0', port, threaded=True, debug=False)
+app.run('0.0.0.0', config.port, threaded=True, debug=False)
