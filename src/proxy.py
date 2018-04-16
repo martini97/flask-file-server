@@ -6,7 +6,6 @@ class ReverseProxied(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        print(config.proxy)
         if len(config.proxy) == 0:
             return self.app(environ, start_response)
 
