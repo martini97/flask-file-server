@@ -13,6 +13,6 @@ RUN pip install             \
 
 RUN apt update && apt install -y vim
 
-ENV PYTHONPATH=/app ARTIFACTS_PATH=/app/data
+ENV ARTIFACTS_PATH=/data
 EXPOSE 5000
 CMD ["python", "src/main.py"]

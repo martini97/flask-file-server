@@ -5,8 +5,6 @@ local: &local
         - 5000:5000
     volumes:
         - .:/app
-        - ./vendor:/usr/api/vendor
+        - ./data:/data
     environment:
-        PYTHONPATH: /app
-        PYTHONUSERBASE: /usr/api/vendor
         ARTIFACTS_PATH: /app/data
